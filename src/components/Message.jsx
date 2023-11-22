@@ -1,15 +1,39 @@
-import React from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
+import { AuthContext } from '../context/AuthContext'
+import { ChatContext } from '../context/ChatContext'
 
-const Message = () => {
+const Message = ({message}) => {
+
+    const {currentUser} = useContext(AuthContext);
+    const { data } = useContext(ChatContext);
+    const ref = useRef()
+
+    useEffect(() => {
+      ref.current?.scrollIntoView({behaviour:"smooth"})
+    }, [message])
+
+
+  // console.log(message)
   return (
-    <div className='message owner'>
+    <div ref={ref}
+    // eslint-disable-next-line no-template-curly-in-string
+    className={'message ${message.senderId === currentUser.uid && "owner"}'}>
+      
       <div className='messageInfo'>
-        <img src="https://images.pexels.com/photos/17776988/pexels-photo-17776988/free-photo-of-brunette-model-in-dress-posing-in-field.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load" alt="" className='messageinfoImage' />
-        <span>just now</span>
+        <img src={
+          message.senderId === currentUser.uid 
+          ? currentUser.photoURL 
+          : data.user.photoURL
+        } 
+          alt="" 
+          className='messageinfoImage' />
+        <span>Just now</span>
       </div>
       <div className='messageContent'>
-        <p className='para'>hello</p>
-        <img src="https://images.pexels.com/photos/14395818/pexels-photo-14395818.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="" className='messageContentImage' />
+        <p className='para'>{message.text}</p>
+        {message.img && <img src={message.img}
+        alt="" 
+        className='messageContentImage' />}
       </div>
     
     </div>

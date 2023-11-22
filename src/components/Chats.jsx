@@ -1,41 +1,51 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { AuthContext } from '../context/AuthContext';
+import { useContext } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import { ChatContext } from '../context/ChatContext';
 
 const Chats = () => {
+
+  const [chats,setChats] = useState([])
+  
+  const { currentUser } = useContext(AuthContext);
+
+  const { dispatch } = useContext(ChatContext);
+
+
+  useEffect(() => {
+    const getChats = () => {
+      const unsub = onSnapshot(doc(db, "userChats", currentUser.uid), (doc) => {
+        setChats(doc.data());
+      });
+
+      return () => {
+        unsub();
+      };
+    };
+
+    currentUser.uid && getChats();
+  }, [currentUser.uid]);
+
+// console.log(Object.entries(chats));
+
+    const handleSelect = (u) => {
+      dispatch({type: "CHANGE_USER", payload: u})
+    }
+
   return (
     <div className='chats'>
-    <div className='userChat'>
-        <img src="https://images.pexels.com/photos/8611328/pexels-photo-8611328.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt='' className='searchImage' />
+      {Object.entries(chats)?.sort((a,b)=>b[1].date - a[1].date).map((chat) => (
+    <div className='userChat' key={chat[0]} onClick={()=>handleSelect(chat[1].userInfo)}>
+        <img src={chat[1].userInfo.photoURL} alt='' className='searchImage' />
         <div className='userChatInfo'>
-            <span>Jane</span>
-            <p>Hello</p>
+            <span>{chat[1].userInfo.displayName}</span>
+            <p>{chat[1].lastMessage?.text}</p>
         </div>
         
       </div>
-      <div className='userChat'>
-        <img src="https://images.pexels.com/photos/14412949/pexels-photo-14412949.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load" alt='' className='searchImage' />
-        <div className='userChatInfo'>
-            <span>dave</span>
-            <p>Hey what's up!</p>
-        </div>
-        
-      </div>
-      <div className='userChat'>
-        <img src="https://images.pexels.com/photos/11313270/pexels-photo-11313270.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load" alt='' className='searchImage' />
-        <div className='userChatInfo'>
-            <span>Jake</span>
-            <p>Hello man</p>
-        </div>
-        
-      </div>
-      <div className='userChat'>
-        <img src="https://images.pexels.com/photos/3911381/pexels-photo-3911381.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load" alt='' className='searchImage' />
-        <div className='userChatInfo'>
-            <span>Jon</span>
-            <p>hey there</p>
-        </div>
-        
-      </div>
-      
+      ))}
       </div>
       
       
